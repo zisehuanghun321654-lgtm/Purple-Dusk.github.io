@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>紫色黄昏 - 个人主页</title>
+    <style>
+        :root {
+            --bg-color: #0f0c1b;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --accent-purple: #9d4edd;
+            --accent-pink: #ff758f;
+            --text-main: #e0e1dd;
+            --text-muted: #9a8c98;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(157, 78, 221, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(255, 117, 143, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+
+        .avatar-container {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            border: 2px solid var(--accent-purple);
+            box-shadow: 0 8px 20px rgba(157, 78, 221, 0.3);
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-fallback {
+            font-size: 36px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #c77dff, #ff758f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 15px;
+        }
+
+        .bio {
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            color: #c4bbf0;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .contact-links a,
+        .contact-links .link-btn {
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 8px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .contact-links a:hover,
+        .contact-links .link-btn:hover {
+            background: var(--accent-purple);
+            color: #fff;
+            border-color: var(--accent-purple);
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            border-radius: 6px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            background: var(--card-bg);
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-purple);
+            color: #fff;
+            border-color: var(--accent-purple);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-purple);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* 二维码弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: #1a1625;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px 20px 20px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .modal-content img {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            background: #fff;
+            padding: 8px;
+        }
+        .modal-content p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .modal-close {
+            background: var(--accent-purple);
+            color: #fff;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+        .modal-close:hover {
+            opacity: 0.8;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin: 30px 0 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e0e1dd;
+        }
+
+        .section-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--card-border);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(157, 78, 221, 0.4);
+        }
+
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: rgba(157, 78, 221, 0.2);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            color: #d8b4fe;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="avatar-container">
+                <img src="https://cdn.jsdelivr.net/gh/zisehuanghun321654-lgtm/lyhzise@main/1759804768072.jpeg" alt="紫色黄昏的头像" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                <div class="avatar-fallback" style="display:none;">紫</div>
+            </div>
+
+            <h1>紫色黄昏</h1>
+            <p class="subtitle">✨ 探索者 | 创造者 | 思考者</p>
+            <p class="bio">
+                “追逐晚霞与星光，用代码/文字/设计记录世界。”
+            </p>
+            
+            <div class="contact-links">
+                <!-- GitHub -->
+                <a href="https://github.com/zisehuanghun321654-lgtm" target="_blank">GitHub</a>
+                <button class="copy-btn" data-copy="https://github.com/zisehuanghun321654-lgtm" title="复制GitHub链接">📋</button>
+
+                <!-- 邮件 -->
+                <a href="mailto:zisehuanghun321654@gmail.com">给我发邮件</a>
+                <button class="copy-btn" data-copy="zisehuanghun321654@gmail.com" title="复制邮箱地址">📋</button>
+
+                <!-- B站 -->
+                <a href="https://m.bilibili.com/space/1873518644?from=search" target="_blank">B站空间</a>
+                <button class="copy-btn" data-copy="https://m.bilibili.com/space/1873518644?from=search" title="复制B站链接">📋</button>
+
+                <!-- QQ加好友（点击弹出二维码） -->
+                <button class="link-btn" id="qqModalBtn">加我QQ</button>
+                <button class="copy-btn" data-copy="3179726558" title="复制QQ号">📋</button>
+            </div>
+        </header>
+
+        <h2 class="section-title">💡 探索领域</h2>
+        <div class="card">
+            <div class="tag-group">
+                <span class="tag">AI</span>
+                <span class="tag">心灵终结</span>
+                <span class="tag">二次元</span>
+                <span class="tag">手机探索</span>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 紫色黄昏. Built with passion & evening glow.</p>
+        </footer>
+    </div>
+
+    <!-- 二维码弹窗 -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal-content">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=tencent://AddContact/?subcmd=all&uin=3179726558" alt="QQ加好友二维码">
+            <p>📱 用手机QQ扫一扫添加好友</p>
+            <p style="font-size:0.8rem;">QQ号：3179726558</p>
+            <button class="modal-close" id="closeModalBtn">关闭</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">已复制到剪贴板</div>
+
+    <script>
+        (function() {
+            const toast = document.getElementById('toast');
+            let toastTimer;
+
+            function showToast() {
+                toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+
+            // 复制功能
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const textToCopy = btn.getAttribute('data-copy');
+                    if (!textToCopy) return;
+
+                    try {
+                        await navigator.clipboard.writeText(textToCopy);
+                        showToast();
+                    } catch (err) {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = textToCopy;
+                        textarea.style.position = 'fixed';
+                        textarea.style.opacity = '0';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand('copy');
+                            showToast();
+                        } catch (e) {
+                            alert('复制失败，请手动复制');
+                        }
+                        document.body.removeChild(textarea);
+                    }
+                });
+            });
+
+            // 二维码弹窗控制
+            const modal = document.getElementById('qrModal');
+            const openBtn = document.getElementById('qqModalBtn');
+            const closeBtn = document.getElementById('closeModalBtn');
+
+            openBtn.addEventListener('click', () => {
+                modal.classList.add('active');
+            });
+
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        })();
+    </script>
+
+</body>
+</html>
